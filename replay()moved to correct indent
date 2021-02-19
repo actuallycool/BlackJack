@@ -1,0 +1,207 @@
+from random import shuffle
+import time
+import pyinputplus as pyip
+
+suits = ('Hearts','Clubs','Spades','Diamonds')
+
+values = {'Ace':0, 'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7,
+          'Eight':8, 'Nine':9, 'Ten':10, 'Jack':10, 'Queen':10, 'King':10}
+
+
+class Card():
+    def __init__(self, r, s):
+        self.rank = r
+        self.suit = s
+        
+    def show_card(self):
+        return f"{self.rank} of {self.suit}"
+
+    
+class Deck():
+    def __init__(self):
+        self.deck = []
+        
+    def __str__(self):
+        return f"The deck contains {len(self.deck)} cards."
+        
+    def build_deck(self):
+        for s in suits:
+            for r in values:
+                self.deck.append(Card(r,s))
+                
+    def show_deck(self):
+        for n in self.deck:
+            print(n.show_card())
+    
+    def shuffle_deck(self):
+        return shuffle(self.deck)
+                
+    def draw_card(self):
+        return self.deck.pop()
+    
+    
+class Hand():
+    def __init__(self):
+        self.hand = []
+        self.value = 0
+        
+    def __str__(self):
+        return f"The hand contains {len(self.hand)} cards."
+    
+    def show_card(self, num=0):
+        return self.hand[num]
+    
+    def show_hand(self):
+        for i,j in enumerate(self.hand):
+            print(self.hand[i].show_card())
+        
+    def add_card(self, deck):
+        single_card = deck.draw_card()
+        self.hand.append(single_card)
+        self.value += values[single_card.rank]
+        for n in self.hand:    
+            if self.value <= 10 and n.rank == "Ace":
+                self.value += 11
+            elif self.value >10 and n.rank == "Ace":
+                self.value += 1
+        
+    def val(self):
+        self.value = 0
+        for n in self.hand:
+            self.value += values[n.rank]
+        for n in self.hand:    
+            if self.value <= 10 and n.rank == "Ace":
+                self.value += 11
+            elif self.value >10 and n.rank == "Ace":
+                self.value += 1
+                
+
+class Chips():
+    def __init__(self, value):
+        self.value = value
+    
+    def add_chips(self, amt):
+        self.value += amt
+        print(f"You win {amt}$!")
+        
+    def minus_chips(self, amt):
+        self.value -= amt
+        print(f"You lose {amt}$!")
+        
+    def show_chips(self):
+        print(f"You have chips worth {self.value}$.")
+            
+
+def pick_winner(p_hand,c_hand):
+    p_hand.val()
+    c_hand.val()
+    
+    p_score = p_hand.value
+    c_score = c_hand.value
+      
+    if p_score > 21:
+        print("\nHere's what I got:\n")
+        c_hand.show_hand()
+        print("\nHaha! You got BUSTED!\n")
+        p_chips.minus_chips(bet)
+    
+    elif p_score == 21:
+        print("\nBLACKJACK! Winner Winner, Chicken Dinner!\n")
+        p_chips.add_chips(bet)
+    
+    elif p_score < c_score:
+        print("\nHere's what I got:\n")
+        c_hand.show_hand()
+        print("\nHaha! Easy Peasy, Lemon Squeeasy!\n")
+        p_chips.minus_chips(bet)
+    
+    else:
+        while c_score <= p_score or c_score < 17:
+            c_hand.add_card(deck)
+            c_hand.val()
+            c_score = c_hand.value
+            
+            if c_score > 21:
+                print("\nI got BUSTED!\n")
+                p_chips.add_chips(bet)
+            
+            elif c_score > p_score:
+                print("\nHere's what I got:\n")
+                c_hand.show_hand()
+                print("\nThe round's mine! Better luck next time!\n")
+                p_chips.minus_chips(bet)
+            
+            elif c_score == p_score:
+                print("\nHere's what I got:\n")
+                c_hand.show_hand()
+                p_hand.value + bet
+                return("\nIt's a TIE.\n")
+            
+            else:
+                continue  
+                
+def replay():
+    print("Congratulations! You have gambled away all your chips!")
+    resp = pyip.inputYesNo("\nWant to start again? (y/n): ")
+    if resp == 'yes':
+        return True
+    return False
+    
+# Game logic
+
+flag = True
+while flag:
+    
+    deck = Deck()
+    deck.build_deck()
+    print("Shuffling...")
+    deck.shuffle_deck()
+    time.sleep(1)
+    
+    resp = pyip.inputNum(f"Enter the amount you wish to gamble: ")
+    p_chips = Chips(resp)
+    
+    while p_chips.value:
+        p_chips.show_chips()
+        bet = pyip.inputNum("Enter your bet: ")
+
+        while bet > p_chips.value and bet > 0:
+            print(f"\nSorry! Not enough chips.")
+            p_chips.show_chips()
+            bet = pyip.inputNum("Enter YOUR bet: ")
+        print(f"\nBet of {bet}$ accepted!")
+
+        p_hand = Hand()
+        c_hand = Hand()
+        
+        deck.shuffle_deck()
+        for i in range(4):  
+            if i % 2 == 0:
+                p_hand.add_card(deck)
+            else:
+                c_hand.add_card(deck)
+
+        print(f"\nPlayer: {p_hand.show_card(0).show_card()} + {p_hand.show_card(1).show_card()}\n")
+        print(f"Computer: {c_hand.show_card(0).show_card()} + *********")
+
+        p_resp = ''
+        while p_resp not in ('H','S'): 
+            p_resp = input(f"\nHit or Stand (H/S)?: \n")
+
+            if p_resp.upper() == 'H':
+                p_hand.add_card(deck)
+                p_hand.show_hand()
+                p_score = p_hand.value
+                if p_score > 21:
+                    print(pick_winner(p_hand,c_hand))
+                    flag = False
+                    break
+                p_resp = p_resp
+            elif p_resp.upper() == 'S':
+                print(pick_winner(p_hand, c_hand))
+                flag = False
+                break
+    if replay():
+        flag = True
+    else:
+        print("Ok! Have a nice day!")
